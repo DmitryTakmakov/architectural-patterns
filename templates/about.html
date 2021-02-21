@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>About</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}
+    About us
+{% endblock %}
+{% block content %}
+    <body>
+    {% include "inc-menu.html" %}
     <p>
         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut delectus doloremque hic iste quae quam quod saepe.
         Aperiam consectetur dolor dolore illum maxime nihil nisi nobis? Nemo qui quod similique?
     </p>
-</body>
-</html>
+    </body>
+{% endblock %}

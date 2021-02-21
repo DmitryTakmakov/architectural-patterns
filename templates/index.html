@@ -1,10 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Index page</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}
+    Index page
+{% endblock %}
+{% block content %}
+    <body>
+    {% include "inc-menu.html" %}
     <div>
         <h1>Beep boop beep!</h1>
     </div>
@@ -16,13 +16,5 @@
             Oh, look, here's what the front controller gave me: {{ keyword }}
         </p>
     </div>
-    <div>
-        <p>Here, have some links to other pages in the project:</p>
-        <br>
-        <span>
-            <a href="about">About</a>
-            <a href="contacts">Contacts</a>
-        </span>
-    </div>
-</body>
-</html>
+    </body>
+{% endblock %}
