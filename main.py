@@ -3,7 +3,8 @@ Main module of the framework. Defines front controllers, url-patterns
 and calls the core app.
 """
 from core.wsgi_core import Application
-from views import IndexView, AboutView, ContactsView
+from views import IndexView, AboutView, ContactsView, CoursesListView, \
+    CreateCourseView, CreateCategoryView, CopyCourseView, CategoryListView
 
 
 def front_controller(request: dict):
@@ -19,7 +20,12 @@ def front_controller(request: dict):
 routes = {
     '/': IndexView(),
     '/about/': AboutView(),
-    '/contacts/': ContactsView()
+    '/contacts/': ContactsView(),
+    '/all_courses/': CoursesListView(),
+    '/create_course/': CreateCourseView(),
+    '/copy_course/': CopyCourseView(),
+    '/all_categories/': CategoryListView(),
+    '/create_category/': CreateCategoryView(),
 }
 
 controllers = [
