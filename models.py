@@ -5,40 +5,6 @@ Module containing models for future use with the ORM and classes
 from core.bases import User, Factory, PrototypeMixin
 
 
-class Student(User):
-    """
-    Class representing students in the ORM.
-    """
-
-
-class Teacher(User):
-    """
-    Class representing teachers in the ORM.
-    """
-
-
-class UserFactory(Factory):
-    """
-    Factory class used for creation of the users.
-    user_types is a dictionary that stores information about
-    all available user types.
-    """
-    user_types = {
-        'teacher': Teacher,
-        'student': Student
-    }
-
-    @classmethod
-    def create(cls, type_: str) -> User:
-        """
-        Creates the users of the given type.
-
-        :param type_: the type of the user in string format
-        :return: a new instance of the given class
-        """
-        return cls.user_types[type_]()
-
-
 class CourseCategory:
     """
     Class representing the categories of the courses in the ORM.
@@ -91,8 +57,21 @@ class Course(PrototypeMixin):
 
 class OnlineCourse(Course):
     """
-    Class representing the online courses in the ORM.
+    Class representing the online (pre-recorded) courses in the ORM.
     """
+
+    def __init__(self, course_name: str, course_category: CourseCategory):
+        """
+        Initializes the online course. Sets the number of pre-recorded
+        lessons to 0.
+
+        :param course_name:
+        :param course_category:
+        """
+        super(OnlineCourse, self).__init__(course_name, course_category)
+        self.name = course_name
+        self.category = course_category
+        self.number_of_lessons = 0
 
 
 class OfflineCourse(Course):
@@ -100,11 +79,35 @@ class OfflineCourse(Course):
     Class representing the offline courses in the ORM.
     """
 
+    def __init__(self, course_name: str, course_category: CourseCategory):
+        """
+        Initializes the offline course. Creates the address attribute to
+        be filled later.
+
+        :param course_name:
+        :param course_category:
+        """
+        super(OfflineCourse, self).__init__(course_name, course_category)
+        self.name = course_name
+        self.category = course_category
+        self.address = None
+
 
 class WebinarCourse(Course):
     """
     Class representing the webinars in the ORM.
     """
+
+    def __init__(self, course_name: str, course_category: CourseCategory):
+        """
+        Initializes the webinar course.
+
+        :param course_name:
+        :param course_category:
+        """
+        super(WebinarCourse, self).__init__(course_name, course_category)
+        self.name = course_name
+        self.category = course_category
 
 
 class CourseFactory(Factory):
@@ -132,6 +135,76 @@ class CourseFactory(Factory):
         :return: an instance of the given Course subclass
         """
         return cls.course_types[type_](name, category)
+
+
+class Teacher(User):
+    """
+    Class representing teachers in the ORM.
+    """
+
+
+class Student(User):
+    """
+    Class representing students in the ORM.
+    """
+
+    def __init__(self, login: str):
+        """
+        Initializes the instance of Student class and creates
+        the list with courses this student is attending
+
+        :param login: student's login
+        """
+        self.login = login
+        self.courses_in_attendance = []
+
+    def attend_course(self, course: Course):
+        """
+        Enlists the student on a course. First checks if this student
+        already attends the course, if not - enlists, otherwise - prints
+        an error message.
+
+        :param course: the course to be enlisted on
+        """
+        already_attending_flag = self.courses_in_attendance.count(course)
+        if not already_attending_flag:
+            self.courses_in_attendance.append(course)
+        else:
+            print('You are already attending this course.')
+
+    def leave_course(self, course: Course):
+        """
+        Removes the student from the course if he doesn't wish to attend it.
+        For now it's as simple as this.
+
+        :param course: the course the student wishes to leave
+        """
+        try:
+            self.courses_in_attendance.remove(course)
+        except ValueError:
+            print('You are not attending this course!')
+
+
+class UserFactory(Factory):
+    """
+    Factory class used for creation of the users.
+    user_types is a dictionary that stores information about
+    all available user types.
+    """
+    user_types = {
+        'teacher': Teacher,
+        'student': Student
+    }
+
+    @classmethod
+    def create(cls, type_: str) -> User:
+        """
+        Creates the users of the given type.
+
+        :param type_: the type of the user in string format
+        :return: a new instance of the given class
+        """
+        return cls.user_types[type_]()
 
 
 class OnlineUniversity:
