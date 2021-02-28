@@ -70,14 +70,15 @@ class CreateCourseView:
         if request['method'] == 'POST':
             data = request['data']
             name = data['name']
-            cat_id = int(data.get('category_id'))
+            name = Application.decode_value(name)
+            cat_id = data.get('category_id')
             category = None
             if cat_id:
-                category = site.find_category(cat_id)
+                category = site.find_category(int(cat_id))
                 new_course = site.create_course('online', name, category)
                 site.courses.append(new_course)
-                return '200 Ok', [render_template(
-                    'templates/create_course.html').encode('utf-8')]
+            return '200 Ok', [render_template(
+                'templates/create_course.html').encode('utf-8')]
         else:
             categories = site.course_categories
             return '200 Ok', [render_template(
@@ -155,10 +156,10 @@ class CreateCategoryView:
             data = request['data']
             name = data['name']
             name = Application.decode_value(name)
-            cat_id = int(data.get('category_id'))
+            cat_id = data.get('category_id')
             category = None
             if cat_id:
-                category = site.find_category(cat_id)
+                category = site.find_category(int(cat_id))
             new_category = site.create_category(name, category)
             site.course_categories.append(new_category)
             return '200 Ok', [render_template(

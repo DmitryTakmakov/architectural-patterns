@@ -2,6 +2,7 @@
 The core module of the WSGI framework.
 """
 from quopri import decodestring
+from wsgiref.util import setup_testing_defaults
 
 
 class Application:
@@ -27,6 +28,7 @@ class Application:
         :param start_response:
         :return:
         """
+        setup_testing_defaults(environment)
         request_method = environment['REQUEST_METHOD']
         query_string = environment['QUERY_STRING']
         path = environment['PATH_INFO']
