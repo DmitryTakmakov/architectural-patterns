@@ -69,8 +69,6 @@ class OnlineCourse(Course):
         :param course_category:
         """
         super(OnlineCourse, self).__init__(course_name, course_category)
-        self.name = course_name
-        self.category = course_category
         self.number_of_lessons = 0
 
 
@@ -88,8 +86,6 @@ class OfflineCourse(Course):
         :param course_category:
         """
         super(OfflineCourse, self).__init__(course_name, course_category)
-        self.name = course_name
-        self.category = course_category
         self.address = None
 
 
@@ -106,8 +102,6 @@ class WebinarCourse(Course):
         :param course_category:
         """
         super(WebinarCourse, self).__init__(course_name, course_category)
-        self.name = course_name
-        self.category = course_category
 
 
 class CourseFactory(Factory):
