@@ -1,20 +1,21 @@
 """
-The core module of the WSGI framework.
+The core module of the WSGI framework. Contains the main Application
+class for the framework and also several subclasses for logging and testing.
 """
 from quopri import decodestring
+from typing import Callable
 from wsgiref.util import setup_testing_defaults
 
 
 class Application:
     """
     The core class of the WSGI framework.
-    Takes in the dict with url-patterns and the list of
-    front-controllers and then checks for what HTML-page to show
-    based on the path.
     """
 
     def __init__(self, urls: dict, fronts: list):
         """
+        Takes in the dict with url-patterns and the list of front controllers.
+
         :param urls: url paths
         :param fronts: front controllers
         """
@@ -22,8 +23,12 @@ class Application:
         self.front_controllers = fronts
         self.request = {}
 
-    def __call__(self, environment: dict, start_response) -> list:
+    def __call__(self, environment: dict, start_response: Callable) -> list:
         """
+        Main callable method of the class. Does all the work:
+        analyzes the HTTP-request and then chooses an appropriate view
+        based on the URL path given.
+
         :param environment:
         :param start_response:
         :return:
@@ -76,7 +81,8 @@ class Application:
         :return: data encoded in bytes
         """
         query_content_length = environment.get('CONTENT_LENGTH')
-        content_length = int(query_content_length) if query_content_length else 0
+        content_length = int(
+            query_content_length) if query_content_length else 0
         data = environment['wsgi.input'].read(content_length) \
             if content_length > 0 else b''
         return data
@@ -105,3 +111,69 @@ class Application:
         bytes_value = bytes(value.replace('%', '=').replace("+", " "), 'utf-8')
         decoded_string = decodestring(bytes_value)
         return decoded_string.decode('utf-8')
+
+
+class LoggingApplication(Application):
+    """
+    Logging subclass. Everything it does is the same, except it
+    prints some useful information in stdout.
+    """
+
+    def __init__(self, urls: dict, fronts: list):
+        """
+        The Application subclass for logging. First creates the main
+        application for future purposes, then calls the super.__init__
+        of the parent.
+
+        :param urls: url paths
+        :param fronts: front controllers
+        """
+        self.app = Application(urls, fronts)
+        super().__init__(urls, fronts)
+
+    def __call__(self, environment: dict, start_response: Callable) -> list:
+        """
+        The main callable method of the subclass. Does everything the same
+        as the respective method in the parent class with the addition
+        of logging. Prints in the stdout the following info: url path,
+        request method and the query string for GET-requests.
+
+        :param environment:
+        :param start_response:
+        """
+        print('LOGGING APP')
+        print(f"******************************************\n"
+              f"PATH_INFO: {environment['PATH_INFO']};\n"
+              f"REQUEST_METHOD: {environment['REQUEST_METHOD']};\n"
+              f"QUERY_STRING: {environment['QUERY_STRING']};\n"
+              f"******************************************"
+              )
+        return self.app(environment, start_response)
+
+
+class SpoofApplication(Application):
+    """
+    Dummy application subclass. Does nothing but return one phrase for
+    any request it receives.
+    """
+
+    def __init__(self, urls: dict, fronts: list):
+        """
+        Dummy application subclass. Does nothing but return one phrase for
+        any request it receives.
+
+        :param urls: url routes
+        :param fronts: front controllers
+        """
+        self.app = Application(urls, fronts)
+        super().__init__(urls, fronts)
+
+    def __call__(self, environment: dict, start_response: Callable) -> list:
+        """
+        Main callable method. Returns just one phrase for any request.
+
+        :param environment:
+        :param start_response:
+        """
+        start_response('200 Ok', [('Content-Type', 'text/html')])
+        return [b'Hello from Fake']

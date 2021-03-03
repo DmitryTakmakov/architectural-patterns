@@ -7,16 +7,20 @@ from core.templator import render_template
 from core.wsgi_core import Application
 from logs.config import Logger
 from models import OnlineUniversity
+from core.decorators import UrlPaths, debug
 
 site = OnlineUniversity()
 logger = Logger('main')
+routes = UrlPaths()
 
 
+@routes.add_route('/')
 class IndexView:
     """
     Class-based view for an index page
     """
 
+    @debug
     def __call__(self, request: dict) -> tuple:
         """
         Main callable method that does the magic.
@@ -30,11 +34,13 @@ class IndexView:
                                           keyword=keyword).encode('utf-8')]
 
 
+@routes.add_route('/all_courses/')
 class CoursesListView:
     """
     Class-based view for a list of all available courses.
     """
 
+    @debug
     def __call__(self, request: dict) -> tuple:
         """
         Main callable method that does the magic.
@@ -49,11 +55,13 @@ class CoursesListView:
             objects_list=site.courses).encode('utf-8')]
 
 
+@routes.add_route('/create_course/')
 class CreateCourseView:
     """
     Class-based view for the course creation page.
     """
 
+    @debug
     def __call__(self, request: dict) -> tuple:
         """
         Main callable method that handles the requests.
@@ -86,11 +94,13 @@ class CreateCourseView:
                 categories=categories).encode('utf-8')]
 
 
+@routes.add_route('/copy_course/')
 class CopyCourseView:
     """
     Class-based view to handle the copying of a course.
     """
 
+    @debug
     def __call__(self, request: dict) -> tuple:
         """
         Main callable method. Handles the copying of a given
@@ -114,11 +124,13 @@ class CopyCourseView:
             objects_list=site.courses).encode('utf-8')]
 
 
+@routes.add_route('/all_categories/')
 class CategoryListView:
     """
     Class-based view for the list of existing course categories.
     """
 
+    @debug
     def __call__(self, request: dict) -> tuple:
         """
         Main callable method that does the magic.
@@ -134,11 +146,13 @@ class CategoryListView:
             objects_list=site.course_categories).encode('utf-8')]
 
 
+@routes.add_route('/create_category/')
 class CreateCategoryView:
     """
     Class-based view for a category creation page.
     """
 
+    @debug
     def __call__(self, request: dict) -> tuple:
         """
         Main callable method that handles the requests.
@@ -171,11 +185,13 @@ class CreateCategoryView:
                 categories=categories).encode('utf-8')]
 
 
+@routes.add_route('/about/')
 class AboutView:
     """
     Class-based view for an about page.
     """
 
+    @debug
     def __call__(self, request: dict) -> tuple:
         """
         Main callable method that does the magic.
@@ -188,12 +204,14 @@ class AboutView:
             'templates/about.html').encode('utf-8')]
 
 
+@routes.add_route('/contacts/')
 class ContactsView:
     """
     Class-based view for a contacts page.
     """
 
     @staticmethod
+    @debug
     def save_to_file(request: dict) -> None:
         """
         Saves data from incoming POST-request to file.
@@ -214,6 +232,7 @@ class ContactsView:
         else:
             logger.logger('Data saved successfully.')
 
+    @debug
     def __call__(self, request: dict) -> tuple:
         """
         Main callable method that does the magic.
