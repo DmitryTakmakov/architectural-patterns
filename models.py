@@ -2,7 +2,7 @@
 Module containing models for future use with the ORM and classes
 (e.g. factories) used by the main OnlineUniversity class.
 """
-from core.bases import User, Factory, PrototypeMixin
+from core.bases import User, Factory, PrototypeMixin, Subject, Observer
 
 
 class CourseCategory:
@@ -36,7 +36,7 @@ class CourseCategory:
         return res
 
 
-class Course(PrototypeMixin):
+class Course(PrototypeMixin, Subject):
     """
     Main abstract class for courses, inherits from the Prototype Mixin
     which allows for cloning of existing courses.
@@ -53,6 +53,30 @@ class Course(PrototypeMixin):
         self.name = course_name
         self.category = course_category
         self.category.existing_courses.append(self)
+        self.students = []
+        super().__init__()
+
+    def __getitem__(self, item):
+        """
+        Redefines the built-in magic method - allows for the following
+        call: Course[Student], which would return a student enlisted
+        in the course.
+
+        :param item: student in question
+        :return: a Student object
+        """
+        return self.students[item]
+
+    def add_student(self, student):
+        """
+        Handles the addition of a new student to the course on the course's
+        side.
+
+        :param student:
+        """
+        self.students.append(student)
+        student.courses_in_attendance.append(self)
+        self.notify()
 
 
 class OnlineCourse(Course):
@@ -68,7 +92,7 @@ class OnlineCourse(Course):
         :param course_name:
         :param course_category:
         """
-        super(OnlineCourse, self).__init__(course_name, course_category)
+        super().__init__(course_name, course_category)
         self.number_of_lessons = 0
 
 
@@ -85,7 +109,7 @@ class OfflineCourse(Course):
         :param course_name:
         :param course_category:
         """
-        super(OfflineCourse, self).__init__(course_name, course_category)
+        super().__init__(course_name, course_category)
         self.address = None
 
 
@@ -101,7 +125,7 @@ class WebinarCourse(Course):
         :param course_name:
         :param course_category:
         """
-        super(WebinarCourse, self).__init__(course_name, course_category)
+        super().__init__(course_name, course_category)
 
 
 class CourseFactory(Factory):
@@ -142,14 +166,14 @@ class Student(User):
     Class representing students in the ORM.
     """
 
-    def __init__(self, login: str):
+    def __init__(self, name: str):
         """
         Initializes the instance of Student class and creates
         the list with courses this student is attending
 
-        :param login: student's login
+        :param name: student's login
         """
-        self.login = login
+        super().__init__(name)
         self.courses_in_attendance = []
 
     def attend_course(self, course: Course):
@@ -191,14 +215,51 @@ class UserFactory(Factory):
     }
 
     @classmethod
-    def create(cls, type_: str) -> User:
+    def create(cls, type_: str, name: str) -> User:
         """
         Creates the users of the given type.
 
         :param type_: the type of the user in string format
+        :param name: username
         :return: a new instance of the given class
         """
-        return cls.user_types[type_]()
+        return cls.user_types[type_](name)
+
+
+class TextMessageNotifier(Observer):
+    """
+    Class that observes the changes to the courses, e.g. when a new student
+    enlists in a course, and sends text messages regarding that. Not really
+    sends though, it's a spoof.
+    """
+
+    def update(self, subject: Course):
+        """
+        Sends text messages once the signal from the Subject-subclass
+        object is emitted.
+
+        :param subject: course that emitted the signal
+        """
+        print(f'Text message sent!'
+              f'"Student {subject.students[-1]} joined {subject.name} course"')
+
+
+class EmailNotifier(Observer):
+    """
+    Class that observes the changes to the courses, e.g. when a new student
+    enlists in a course, and sends emails regarding that. Not really sends
+    though, it's a spoof.
+    """
+
+    def update(self, subject: Course):
+        """
+        Sends emails once the signal from the Subject-subclass object
+        is emitted.
+
+        :param subject: course that emitted the signal
+        """
+        print(f'Email sent!'
+              f'"Student {subject.students[-1]} joined {subject.name} course"')
 
 
 class OnlineUniversity:
@@ -218,16 +279,15 @@ class OnlineUniversity:
         self.courses = []
 
     @staticmethod
-    def create_user(type_: str) -> User:
+    def create_user(type_: str, name: str) -> User:
         """
         Creates the user with the help of the user factory.
 
-        :param type_: string with the user type,
-        can be either student or teacher
-
+        :param type_: string with the user type
+        :param name: username
         :return: an instance of one of the User subclasses
         """
-        return UserFactory.create(type_)
+        return UserFactory.create(type_, name)
 
     @staticmethod
     def create_category(
@@ -256,7 +316,8 @@ class OnlineUniversity:
         raise Exception(f"There's no category with id {cat_id}")
 
     @staticmethod
-    def create_course(type_, name, category) -> Course:
+    def create_course(
+            type_: str, name: str, category: CourseCategory) -> Course:
         """
         Creates a course of the given type, with the given name and
         under the given category.
@@ -268,7 +329,7 @@ class OnlineUniversity:
         """
         return CourseFactory.create(type_, name, category)
 
-    def get_course(self, name) -> (Course, None):
+    def get_course(self, name: str) -> (Course, None):
         """
         Tries to fetch a course by name. If nothing has been found
         returns None instead.
@@ -279,4 +340,17 @@ class OnlineUniversity:
         for item in self.courses:
             if item.name == name:
                 return item
+        return None
+
+    def get_student(self, name: str) -> (Student, None):
+        """
+        Tries to fetch a student by name. If nothing has been found
+        returns None instead.
+
+        :param name: name of the student in string format
+        :return: either an instance of Student or None
+        """
+        for student in self.students:
+            if student.name == name:
+                return student
         return None

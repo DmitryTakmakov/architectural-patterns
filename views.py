@@ -21,7 +21,7 @@ class IndexView:
     """
 
     @debug
-    def __call__(self, request: dict) -> tuple:
+    def __call__(self, request: dict) -> (str, list):
         """
         Main callable method that does the magic.
 
@@ -41,7 +41,7 @@ class CoursesListView:
     """
 
     @debug
-    def __call__(self, request: dict) -> tuple:
+    def __call__(self, request: dict) -> (str, list):
         """
         Main callable method that does the magic.
 
@@ -62,7 +62,7 @@ class CreateCourseView:
     """
 
     @debug
-    def __call__(self, request: dict) -> tuple:
+    def __call__(self, request: dict) -> (str, list):
         """
         Main callable method that handles the requests.
         If it's POST request the method extracts the data from
@@ -101,7 +101,7 @@ class CopyCourseView:
     """
 
     @debug
-    def __call__(self, request: dict) -> tuple:
+    def __call__(self, request: dict) -> (str, list):
         """
         Main callable method. Handles the copying of a given
         course by invoking a Prototype Mixin method 'clone'.
@@ -131,7 +131,7 @@ class CategoryListView:
     """
 
     @debug
-    def __call__(self, request: dict) -> tuple:
+    def __call__(self, request: dict) -> (str, list):
         """
         Main callable method that does the magic.
 
@@ -153,7 +153,7 @@ class CreateCategoryView:
     """
 
     @debug
-    def __call__(self, request: dict) -> tuple:
+    def __call__(self, request: dict) -> (str, list):
         """
         Main callable method that handles the requests.
         If it's POST request the method extracts the data from
@@ -192,7 +192,7 @@ class AboutView:
     """
 
     @debug
-    def __call__(self, request: dict) -> tuple:
+    def __call__(self, request: dict) -> (str, list):
         """
         Main callable method that does the magic.
 
@@ -233,7 +233,7 @@ class ContactsView:
             logger.logger('Data saved successfully.')
 
     @debug
-    def __call__(self, request: dict) -> tuple:
+    def __call__(self, request: dict) -> (str, list):
         """
         Main callable method that does the magic.
 

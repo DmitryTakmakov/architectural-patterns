@@ -1,10 +1,14 @@
 """
 Module with metaclasses and abstract metaclasses for various classes
 throughout the framework. This module includes a Singleton metaclass
-for the logging module, a mixin for the Prototype pattern
+for the logging module, a mixin for the Prototype pattern, Observer and
+Subject classes for Observer pattern, BaseSerializer for the framework
 """
 from abc import ABCMeta, abstractmethod
 from copy import deepcopy
+from typing import Any
+
+from jsonpickle import dumps, loads
 
 
 class NamedSingleton(type):
@@ -61,10 +65,53 @@ class PrototypeMixin:
         return deepcopy(self)
 
 
+class Subject:
+    """
+    Abstract subject (emitter) class for the Observer pattern.
+    """
+
+    def __init__(self):
+        """
+        Initializes the class object, prepares the list of all
+        know observers.
+        """
+        self.observers = []
+
+    def notify(self):
+        """
+        Notifies all the observers of the changes.
+        """
+        for observer in self.observers:
+            observer.update(self)
+
+
+class Observer:
+    """
+    Abstract observer that updates the data once it receives the
+    signal from the Subject. Part of the Observer pattern.
+    """
+
+    def update(self, subject: Subject):
+        """
+        Abstract placeholder-method that does the update.
+
+        :param subject: emitter of the signal
+        """
+        pass
+
+
 class User(metaclass=ABCMeta):
     """
     Base metaclass for a user. Main functionality TBD
     """
+
+    def __init__(self, name: str):
+        """
+        Initializes the class object.
+
+        :param name: username
+        """
+        self.name = name
 
 
 class Factory(metaclass=ABCMeta):
@@ -79,3 +126,30 @@ class Factory(metaclass=ABCMeta):
         Abstract method used for creation of instances.
         Must be implemented in all factories using this class as meta.
         """
+
+
+class BaseSerializer:
+    """
+    Basic serializer for use in the framework. Utilizes the jsonpickle lib.
+    """
+
+    def __init__(self, obj):
+        """
+        Initializes the serializer object.
+
+        :param obj: object to serialize
+        """
+        self.object = obj
+
+    def save(self) -> str:
+        """
+        Serializes the data utilizing the jsonpickle lib.
+        """
+        return dumps(self.object)
+
+    @staticmethod
+    def load(data: Any) -> Any:
+        """
+        Deserializes the data using the jsonpickle lib.
+        """
+        return loads(data)
