@@ -153,3 +153,19 @@ class BaseSerializer:
         Deserializes the data using the jsonpickle lib.
         """
         return loads(data)
+
+
+class LoggerStrategy(metaclass=ABCMeta):
+    """
+    Abstract metaclass for the logger utilizing the Strategy pattern.
+    """
+
+    @abstractmethod
+    def write(self, text: str):
+        """
+        Abstract method that must be present in all subclasses of
+        the Logger Strategy. Handles the writing of the logs.
+
+        :param text: text to log
+        """
+        pass

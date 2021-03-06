@@ -108,9 +108,9 @@ class Application:
         :param value: string to decode
         :return: decoded string
         """
-        bytes_value = bytes(value.replace('%', '=').replace("+", " "), 'utf-8')
+        bytes_value = bytes(value.replace('%', '=').replace("+", " "), 'UTF-8')
         decoded_string = decodestring(bytes_value)
-        return decoded_string.decode('utf-8')
+        return decoded_string.decode('UTF-8')
 
 
 class LoggingApplication(Application):
