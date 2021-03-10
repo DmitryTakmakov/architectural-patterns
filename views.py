@@ -10,12 +10,16 @@ from core.wsgi_core import Application
 from logs.config import Logger
 from models import OnlineUniversity, EmailNotifier, TextMessageNotifier
 from core.decorators import UrlPaths, debug
+from orm.core import UnitOfWork
+from orm.mappers import MapperRegistry
 
 site = OnlineUniversity()
 email_notifier = EmailNotifier()
 text_notifier = TextMessageNotifier()
 logger = Logger('file', 'main')
 routes = UrlPaths()
+UnitOfWork.new_current()
+UnitOfWork.get_current().set_mapper_registry(MapperRegistry)
 
 
 @routes.add_route('/api/')
@@ -219,7 +223,15 @@ class StudentsListView(ListView):
     Class-based view for the list of all students.
     """
     template_name = 'templates/students_list.html'
-    queryset = site.students
+
+    def get_queryset(self) -> list:
+        """
+        Retrieves the queryset from the database.
+
+        :return: all current students
+        """
+        mapper = MapperRegistry.get_current_mapper('student')
+        return mapper.return_all()
 
 
 @routes.add_route('/create_student/')
@@ -240,6 +252,8 @@ class StudentCreateView(CreateView):
         name = Application.decode_value(name)
         new_student = site.create_user('student', name)
         site.students.append(new_student)
+        new_student.mark_new()
+        UnitOfWork.get_current().commit()
 
 
 @routes.add_route('/enlist_student/')

@@ -3,6 +3,7 @@ Module containing models for future use with the ORM and classes
 (e.g. factories) used by the main OnlineUniversity class.
 """
 from core.bases import User, Factory, PrototypeMixin, Subject, Observer
+from orm.core import DomainObject
 
 
 class CourseCategory:
@@ -161,7 +162,7 @@ class Teacher(User):
     """
 
 
-class Student(User):
+class Student(User, DomainObject):
     """
     Class representing students in the ORM.
     """
@@ -174,6 +175,7 @@ class Student(User):
         :param name: student's login
         """
         super().__init__(name)
+        self.id = None
         self.courses_in_attendance = []
 
     def attend_course(self, course: Course):
