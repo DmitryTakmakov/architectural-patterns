@@ -2,24 +2,28 @@
 Module with class-based views for the project.
 """
 from datetime import datetime
+from sqlite3 import connect
 
 from core.bases import BaseSerializer
 from core.templator import render_template
 from core.views import TemplateView, ListView, CreateView
 from core.wsgi_core import Application
 from logs.config import Logger
-from models import OnlineUniversity, EmailNotifier, TextMessageNotifier
+from mappers import ProjectMapperRegistry
+from models import OnlineUniversity, EmailNotifier, TextMessageNotifier, \
+    Student
 from core.decorators import UrlPaths, debug
 from orm.core import UnitOfWork
-from orm.mappers import MapperRegistry
 
 site = OnlineUniversity()
 email_notifier = EmailNotifier()
 text_notifier = TextMessageNotifier()
 logger = Logger('file', 'main')
 routes = UrlPaths()
+connection = connect('test_db.sqlite3')
+mapper_registry = ProjectMapperRegistry(connection)
 UnitOfWork.new_current()
-UnitOfWork.get_current().set_mapper_registry(MapperRegistry)
+UnitOfWork.get_current().set_mapper_registry(mapper_registry)
 
 
 @routes.add_route('/api/')
@@ -226,12 +230,20 @@ class StudentsListView(ListView):
 
     def get_queryset(self) -> list:
         """
-        Retrieves the queryset from the database.
+        Retrieves the queryset from the database, then creates class
+        objects from the queries.
 
         :return: all current students
         """
-        mapper = MapperRegistry.get_current_mapper('student')
-        return mapper.return_all()
+        mapper = mapper_registry.get_current_mapper('student')
+        query_list = mapper.return_all()
+        result = []
+        for query in query_list:
+            student_id, student_name = query
+            student = Student(student_name)
+            student.id = student_id
+            result.append(student)
+        return result
 
 
 @routes.add_route('/create_student/')

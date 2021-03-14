@@ -1,35 +1,32 @@
-from sqlite3 import connect, Connection
+"""
+Module containing abstract mappers for the framework's ORM as well as the
+registry parent class for existing mappers. Actual mappers to be used
+in the project have to be subclassed to the Mapper class from here
+as well as the MapperRegistry implementations.
+"""
+from sqlite3 import Connection
 
-from models import Student
 from orm.errors import RecordNotFoundError, DatabaseCommitError, \
     DatabaseUpdateError, DatabaseDeleteError
 
-connection = connect('test_db.sqlite3')
 
-
-class StudentMapper:
+class Mapper:
     def __init__(self, conn: Connection):
         self.connection = conn
         self.cursor = conn.cursor()
-        self.table_name = 'students'
+        self.table_name = ''
 
     def return_all(self) -> list:
         statement = f'SELECT * FROM {self.table_name}'
         self.cursor.execute(statement)
-        result = []
-        for item in self.cursor.fetchall():
-            item_id, item_name = item
-            student = Student(item_name)
-            student.id = item_id
-            result.append(student)
-        return result
+        return self.cursor.fetchall()
 
     def find_by_id(self, id: int):
         statement = f'SELECT id, name FROM {self.table_name} WHERE id=?'
         self.cursor.execute(statement, (id,))
         result = self.cursor.fetchone()
         if result:
-            return Student(*result)
+            return result
         else:
             raise RecordNotFoundError(f'Record with id={id} not found!')
 
@@ -58,21 +55,45 @@ class StudentMapper:
             raise DatabaseDeleteError(e.args)
 
 
-# TODO mapper metaclass or parent class? and separate mappers for
-#  all types of objects in the framework
-
-# TODO docstrings and such...
+# TODO separate mappers for all types of objects in the framework
 
 class MapperRegistry:
-    mappers = {
-        'student': StudentMapper
-    }
+    """
+    Mappers registry parent class. It stores all available data mappers
+    in the class-attribute dictionary. It can return the mapper on
+    demand.
+    """
+    mappers = dict()
+    models = set()
 
-    @staticmethod
-    def get_mapper(obj: object):
-        if isinstance(obj, StudentMapper):
-            return StudentMapper(connection)
+    def __init__(self, connection: Connection):
+        """
+        Initializes the registry with the database connection.
 
-    @staticmethod
-    def get_current_mapper(name: str):
-        return MapperRegistry.mappers[name](connection)
+        :param connection: connection to database (sqlite3 by default)
+        """
+        self.connection = connection
+
+    def get_mapper(self, obj: Mapper):
+        """
+        Returns a relevant mapper. The method checks the instance of
+        the object passed into it and returns the relevant mapper.
+
+        :param obj: instance of one of models
+        :return: relevant data mapper object
+        """
+        for key, value in self.mappers.items():
+            for model in self.models:
+                if isinstance(obj, model):
+                    return value(self.connection)
+
+    def get_current_mapper(self, name: str):
+        """
+        Returns a relevant mapper by name. Checks if the string
+        passed into it corresponds to a name in the class-attribute
+        dictionary. Returns the relevant data mapper if it does.
+
+        :param name: the data mapper name
+        :return: relevant data mapper object
+        """
+        return self.mappers[name](self.connection)
